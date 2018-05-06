@@ -1,0 +1,121 @@
+package com.myteam.rulesbase;
+
+import com.myteam.rulesbase.dedupCases;
+import com.myteam.rulesbase.dedupCaseList;
+import java.util.List;
+import java.util.ArrayList;
+import java.time.LocalDateTime;
+
+ 
+function Boolean getDateValue(LocalDateTime date1,LocalDateTime date2){
+boolean dateResult=false;
+    if(date1.isEqual(date2)){
+    dateResult=true;
+    }
+    else if(date2.isBefore(date1)){
+        if((date2.plusHours(2).isBefore(date1))){
+            dateResult=false;
+        }
+        else {
+            dateResult=true;
+        }
+    }
+    else if(date2.isAfter(date1)){
+        if((date2.minusHours(2).isAfter(date1))){
+            dateResult=false;
+        }
+        else {
+            dateResult=true;
+        }
+    }
+    else {
+        dateResult=false;
+    }
+    return dateResult;
+}
+
+
+rule "Print Cases"
+	when
+	$dedupCaseList : dedupCaseList()
+	then
+    $dedupCaseList.setDupMeta(false);
+    $dedupCaseList.setDupIncType(false);
+    $dedupCaseList.setDupVehReg(false);
+    $dedupCaseList.setDupSaId(false);
+    $dedupCaseList.setDupDOB(false);
+    $dedupCaseList.getCase2().setCaseStatus("UNASSIGNED");
+    $dedupCaseList.setIsDuplicate(false);
+	update($dedupCaseList);
+	System.out.println("\nPrint Pending Cases");
+	System.out.println("************************************");
+	System.out.println("Hey....."+$dedupCaseList);
+	System.out.println("Get worked"+ $dedupCaseList.getCase1());
+	System.out.println("Incident time"+$dedupCaseList.getCase1().getIncidentTime());
+	//System.out.println("Incident time"+$dedupCaseList.getCase2().getIncidentTime());
+	System.out.println("Incident time difference"+$dedupCaseList.getCase1().getIncidentTime().isEqual($dedupCaseList.getCase2().getIncidentTime()));
+	System.out.println("Incident get function:\t"+getDateValue($dedupCaseList.getCase1().getIncidentTime(),$dedupCaseList.getCase2().getIncidentTime()));
+	System.out.println("Get worked"+ $dedupCaseList.getCase1().getPolicyNo());
+	//System.out.println("Get worked"+ $dedupCaseList.getDedupCases().get(1).getPolicyNo());
+	//for ($dedupCases : $dedupCaseList.getDedupCases()) {
+	//dedupCases $dedupCases = $dedupCaseList.getDedupCases().get(1);
+	//System.out.println($dedupCases.getPolicyNo());
+	//}
+end
+
+rule "rule2"    
+when
+$dedupCaseList : dedupCaseList((dedupCaseList.case1.policyNo == dedupCaseList.case2.policyNo ) && (getDateValue($dedupCaseList.getCase1().getIncidentTime(),$dedupCaseList.getCase2().getIncidentTime())))
+then
+	$dedupCaseList.setDupMeta(true);
+	update($dedupCaseList);
+end
+
+rule "rule3"
+when
+$dedupCaseList : dedupCaseList(((dedupCaseList.case1.vehicleIncidentType!=null)||(dedupCaseList.case1.vehicleIncidentType!=''))&&((dedupCaseList.case1.vehicleIncidentSubtype!=null)||(dedupCaseList.case1.vehicleIncidentSubtype!=''))&&((dedupCaseList.case2.vehicleIncidentType!=null)||(dedupCaseList.case2.vehicleIncidentType!=''))&&((dedupCaseList.case2.vehicleIncidentSubtype!=null)||(dedupCaseList.case2.vehicleIncidentSubtype!=''))&&(dedupCaseList.case1.vehicleIncidentType == dedupCaseList.case2.vehicleIncidentType) && (dedupCaseList.case1.vehicleIncidentSubtype == dedupCaseList.case2.vehicleIncidentSubtype))
+then
+
+	$dedupCaseList.setDupIncType(true);
+	update($dedupCaseList);
+end
+
+rule "rule4"
+when
+$dedupCaseList : dedupCaseList((dedupCaseList.case1.vehicleRegNo == dedupCaseList.case2.vehicleRegNo)&&dupIncType==true)
+then
+	$dedupCaseList.setDupVehReg(true);
+	update($dedupCaseList);
+end
+
+rule "rule5"
+when
+$dedupCaseList : dedupCaseList((case1.policyHolderId == case2.policyHolderId)&&dupVehReg==true)
+then
+	$dedupCaseList.setDupSaId(true);
+	update($dedupCaseList);
+end
+
+rule "rule6"
+when
+$dedupCaseList : dedupCaseList((case1.customerInitials == case2.customerInitials)&&(case1.customerSurname == case2.customerSurname)&&(case1.dateOfBirth == case2.dateOfBirth)&&dupVehReg==true&&dupIncType==true&&dupSaId==true)
+then
+	$dedupCaseList.setDupDOB(true);
+	update($dedupCaseList);
+end
+
+rule "rule7"
+when
+$dedupCaseList : dedupCaseList(dupMeta==true)
+then
+	$dedupCaseList.setIsDuplicate(true);
+	update($dedupCaseList);
+end
+
+rule "rule8"
+when
+$dedupCaseList : dedupCaseList((dupMeta==false)&&((dupSaId == true) || (dupIncType == true) || (dupDOB == true)))
+then
+	$dedupCaseList.setIsDuplicate(true);
+	update($dedupCaseList);
+end
