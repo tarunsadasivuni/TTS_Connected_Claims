@@ -3,15 +3,15 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.myteam</groupId>
-  <artifactId>TTS_Connected_Claims</artifactId>
-  <version>1.0.3</version>
-  <name>TTS_Connected_Claims</name>
-  <description>TTS Connected Claims application is the middleware layer thatfacilitates the process flow of Incident management and to and fro data transfer / request-response communication with third party service providers. The entire case managemnt flow of incident to claims management is designed and deployed.</description>
+  <artifactId>RulesBase</artifactId>
+  <version>1.0.17</version>
+  <name>RulesBase</name>
+  <description>RulesBase</description>
   <repositories>
     <repository>
       <id>guvnor-m2-repo</id>
       <name>Guvnor M2 Repo</name>
-      <url>http://localhost:8080/jbpm-console/maven2/</url>
+      <url>http://52.171.62.106:8080/jbpm-console/maven2/</url>
     </repository>
   </repositories>
 </project>
